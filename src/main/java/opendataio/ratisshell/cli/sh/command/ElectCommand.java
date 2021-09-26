@@ -17,17 +17,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class ElectCommand extends AbstractRatisCommand {
   public static final String ADDRESS_OPTION_NAME = "address";
   public static final String PEER_OPTION_NAME = "peers";
-  public static final String DOMAIN_OPTION_NAME = "domain";
-  public static final UUID RAFT_GROUP_UUID =
-      UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1");
-  public static final RaftGroupId RAFT_GROUP_ID = RaftGroupId.valueOf(RAFT_GROUP_UUID);
-  private static final AtomicLong CALL_ID_COUNTER = new AtomicLong();
+  public static final String GROUPID_OPTION_NAME = "groupid";
+  public static final RaftGroupId DEFAULT_ALLUXIO_RAFT_GROUP_ID
+      = RaftGroupId.valueOf(
+          UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1"));
   private RaftGroup mRaftGroup;
 
   /**
@@ -57,13 +55,21 @@ public class ElectCommand extends AbstractRatisCommand {
       // TODO(maobaolong) fill addresses from config
     }
 
+    RaftGroupId raftGroupId = DEFAULT_ALLUXIO_RAFT_GROUP_ID;
+    if (cl.hasOption(GROUPID_OPTION_NAME)) {
+      raftGroupId = RaftGroupId.valueOf(
+          UUID.fromString(cl.getOptionValue(GROUPID_OPTION_NAME)));
+    } else {
+      // TODO(maobaolong) fill groupid from config
+    }
+
     Set<RaftPeer> peers = addresses.stream()
         .map(addr -> RaftPeer.newBuilder()
             .setId(RaftUtils.getPeerId(addr))
             .setAddress(addr)
             .build()
         ).collect(Collectors.toSet());
-    mRaftGroup = RaftGroup.valueOf(RAFT_GROUP_ID, peers);
+    mRaftGroup = RaftGroup.valueOf(raftGroupId, peers);
 
     String strAddr = cl.getOptionValue(ADDRESS_OPTION_NAME);
     InetSocketAddress serverAddress = RaftUtils.stringToAddress(strAddr);
@@ -125,9 +131,10 @@ public class ElectCommand extends AbstractRatisCommand {
 
   @Override
   public String getUsage() {
-    return String.format("%s -%s <HOSTNAME:PORT> "
-        + "[-%s PEER0_HOST:PEER0_PORT,PEER1_HOST:PEER1_PORT,PEER2_HOST:PEER2_PORT]",
-        getCommandName(), ADDRESS_OPTION_NAME, PEER_OPTION_NAME);
+    return String.format("%s -%s <HOSTNAME:PORT>"
+        + " [-%s PEER0_HOST:PEER0_PORT,PEER1_HOST:PEER1_PORT,PEER2_HOST:PEER2_PORT]"
+        + " [-%s RAFT_GROUP_ID]",
+        getCommandName(), ADDRESS_OPTION_NAME, PEER_OPTION_NAME, GROUPID_OPTION_NAME);
   }
 
   @Override
@@ -140,7 +147,8 @@ public class ElectCommand extends AbstractRatisCommand {
     return new Options()
         .addOption(ADDRESS_OPTION_NAME, true,
             "Server address that will take over as leader")
-        .addOption(PEER_OPTION_NAME, true, "Peer addresses seperated by comma");
+        .addOption(PEER_OPTION_NAME, true, "Peer addresses seperated by comma")
+        .addOption(GROUPID_OPTION_NAME, true, "Raft group id");
   }
 
   /**
