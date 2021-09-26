@@ -7,9 +7,17 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.PrintStream;
 
+/**
+ * A context for ratis-shell.
+ */
 public final class Context implements Closeable {
   private final PrintStream mPrintStream;
   private final Closer mCloser;
+
+  /**
+   * Build a context.
+   * @param printStream the print stream
+   */
   public Context(PrintStream printStream) {
     mCloser = Closer.create();
     mCloser.register(
