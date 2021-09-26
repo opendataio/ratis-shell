@@ -49,8 +49,8 @@ function main {
 
   case ${COMMAND} in
   "sh")
-    CLASS="opendataio.shell.RatisShell"
-    CLASSPATH=${RATIS_SHELL_CLASSPATH}
+    CLASS="opendataio.ratisshell.cli.sh.RatisShell"
+    CLASSPATH=${RATIS_SHELL_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   *)

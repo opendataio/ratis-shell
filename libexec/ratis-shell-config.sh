@@ -16,6 +16,7 @@ this="${config_bin}/${script}"
 # set system installation locations.
 VERSION=1.0.0
 RATIS_SHELL_HOME=$(dirname $(dirname "${this}"))
+RATIS_SHELL_ASSEMBLY_CLIENT_JAR="${RATIS_SHELL_HOME}/target/ratis-shell-${VERSION}-jar-with-dependencies.jar"
 RATIS_SHELL_CONF_DIR="${RATIS_SHELL_CONF_DIR:-${RATIS_SHELL_HOME}/conf}"
 RATIS_SHELL_LOGS_DIR="${RATIS_SHELL_LOGS_DIR:-${RATIS_SHELL_HOME}/logs}"
 
@@ -44,6 +45,7 @@ if [[ ${JAVA_MAJORMINOR} != 001008 && ${JAVA_MAJOR} != 011 ]]; then
   exit 1
 fi
 
+RATIS_SHELL_CLIENT_CLASSPATH="${RATIS_SHELL_CONF_DIR}/:${RATIS_SHELL_CLASSPATH}:${RATIS_SHELL_ASSEMBLY_CLIENT_JAR}"
 
 if [[ -n "${RATIS_SHELL_HOME}" ]]; then
   RATIS_SHELL_JAVA_OPTS+=" -Dratis-shell.home=${RATIS_SHELL_HOME}"

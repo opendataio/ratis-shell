@@ -125,7 +125,9 @@ public class ElectCommand extends AbstractRatisCommand {
 
   @Override
   public String getUsage() {
-    return String.format("%s -%s <HOSTNAME:PORT>", getCommandName(), ADDRESS_OPTION_NAME);
+    return String.format("%s -%s <HOSTNAME:PORT> "
+        + "[-%s PEER0_HOST:PEER0_PORT,PEER1_HOST:PEER1_PORT,PEER2_HOST:PEER2_PORT]",
+        getCommandName(), ADDRESS_OPTION_NAME, PEER_OPTION_NAME);
   }
 
   @Override
