@@ -17,3 +17,7 @@ Or
 ```Console
 java -jar ./target/ratis-shell-1.0.0-jar-with-dependencies.jar  elect -peers localhost:19200,localhost:19201,localhost:19202 -address localhost:19201 
 ```
+
+# wiki
+
+https://github.com/opendataio/ratis-shell/wiki
