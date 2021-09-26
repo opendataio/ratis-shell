@@ -19,6 +19,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Command for transferring the leadership to another peer.
+ */
 public class ElectCommand extends AbstractRatisCommand {
   public static final String ADDRESS_OPTION_NAME = "address";
   public static final String PEER_OPTION_NAME = "peers";
@@ -46,9 +49,10 @@ public class ElectCommand extends AbstractRatisCommand {
     if (cl.hasOption(PEER_OPTION_NAME)) {
       String peersStr = cl.getOptionValue(PEER_OPTION_NAME);
       String[] peersArray = peersStr.split(",");
-      for (int i = 0; i< peersArray.length; i++) {
+      for (int i = 0; i < peersArray.length; i++) {
         String[] hostPortPair = peersArray[i].split(":");
-        InetSocketAddress addr = new InetSocketAddress(hostPortPair[0], Integer.parseInt(hostPortPair[1]));
+        InetSocketAddress addr =
+            new InetSocketAddress(hostPortPair[0], Integer.parseInt(hostPortPair[1]));
         addresses.add(addr);
       }
     } else {
@@ -115,11 +119,6 @@ public class ElectCommand extends AbstractRatisCommand {
       mPrintStream.println("Transferring leadership initiated");
     }
     return 0;
-  }
-
-  private void processReply(RaftClientReply reply, String msg)
-      throws IOException {
-    RaftUtils.processReply(reply, msg, mPrintStream);
   }
 
   @Override

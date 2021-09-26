@@ -5,9 +5,7 @@ import opendataio.ratisshell.cli.RaftUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.ratis.client.RaftClient;
-import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.GroupInfoReply;
-import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
 import org.apache.ratis.protocol.RaftPeer;
@@ -19,6 +17,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Command for querying ratis group information.
+ */
 public class InfoCommand extends AbstractRatisCommand {
   public static final String PEER_OPTION_NAME = "peers";
   public static final String GROUPID_OPTION_NAME = "groupid";
@@ -45,9 +46,10 @@ public class InfoCommand extends AbstractRatisCommand {
     if (cl.hasOption(PEER_OPTION_NAME)) {
       String peersStr = cl.getOptionValue(PEER_OPTION_NAME);
       String[] peersArray = peersStr.split(",");
-      for (int i = 0; i< peersArray.length; i++) {
+      for (int i = 0; i < peersArray.length; i++) {
         String[] hostPortPair = peersArray[i].split(":");
-        InetSocketAddress addr = new InetSocketAddress(hostPortPair[0], Integer.parseInt(hostPortPair[1]));
+        InetSocketAddress addr =
+            new InetSocketAddress(hostPortPair[0], Integer.parseInt(hostPortPair[1]));
         addresses.add(addr);
       }
     } else {
@@ -78,30 +80,6 @@ public class InfoCommand extends AbstractRatisCommand {
       mPrintStream.println("leader id: " + getLeaderId(reply.getRoleInfoProto()));
     }
     return 0;
-  }
-
-  /**
-   * Get the leader id.
-   *
-   * @return the leader id
-   */
-  public String getLeaderId(RaftProtos.RoleInfoProto roleInfo) {
-    if (roleInfo == null) {
-      return null;
-    }
-    if (roleInfo.getRole() == RaftProtos.RaftPeerRole.LEADER) {
-      return roleInfo.getSelf().getAddress();
-    }
-    RaftProtos.FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
-    if (followerInfo == null) {
-      return null;
-    }
-    return followerInfo.getLeaderInfo().getId().getId().toStringUtf8();
-  }
-
-  private void processReply(RaftClientReply reply, String msg)
-      throws IOException {
-    RaftUtils.processReply(reply, msg, mPrintStream);
   }
 
   @Override

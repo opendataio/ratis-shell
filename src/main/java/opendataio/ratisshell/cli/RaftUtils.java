@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class RaftUtils {
   public static final String RAFT_DIR = "raft";
+
   private RaftUtils() {
     // prevent instantiation
   }
@@ -71,6 +72,11 @@ public class RaftUtils {
     return future;
   }
 
+  /**
+   * Create a raft client to communicate to ratis server.
+   * @param raftGroup the raft group
+   * @return return a raft client
+   */
   public static RaftClient createClient(
       RaftGroup raftGroup) {
     RaftProperties properties = new RaftProperties();
@@ -95,7 +101,8 @@ public class RaftUtils {
 
   /**
    * @param reply from the ratis operation
-   * @param printStream
+   * @param msgToUser message to user
+   * @param printStream the print stream
    * @throws IOException
    */
   public static void processReply(RaftClientReply reply, String msgToUser,
@@ -112,9 +119,8 @@ public class RaftUtils {
   /**
    * @param serverAddress the string containing the hostname and port separated by a ':
    * @return a NetAddress object composed of a hostname and a port
-   * @throws IllegalArgumentException
    */
-  public static InetSocketAddress stringToAddress(String serverAddress) throws IllegalArgumentException {
+  public static InetSocketAddress stringToAddress(String serverAddress) {
     String hostName;
     int port;
     try {

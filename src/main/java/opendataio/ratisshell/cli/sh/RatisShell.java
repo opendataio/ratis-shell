@@ -6,14 +6,21 @@ import opendataio.ratisshell.cli.sh.command.Context;
 import opendataio.ratisshell.util.CommonUtils;
 import org.reflections.Reflections;
 
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Shell for manage ratis group.
+ */
 public class RatisShell extends AbstractShell {
 
-  public static void main(String[] args) throws IOException {
+  /**
+   * Manage ratis shell command.
+   *
+   * @param args array of arguments given by the user's input from the terminal
+   */
+  public static void main(String[] args) {
     RatisShell extensionShell = new RatisShell();
     System.exit(extensionShell.run(args));
   }
