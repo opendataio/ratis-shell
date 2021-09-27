@@ -6,6 +6,7 @@ import opendataio.ratisshell.conf.InstancedConfiguration;
 import opendataio.ratisshell.conf.PropertyKey;
 import opendataio.ratisshell.conf.RatisShellConfiguration;
 import org.apache.commons.cli.CommandLine;
+import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftGroup;
@@ -27,9 +28,9 @@ public abstract class AbstractRatisCommand implements Command {
   public static final String SERVICE_ID_OPTION_NAME = "serviceid";
   public static final String PEER_OPTION_NAME = "peers";
   public static final String GROUPID_OPTION_NAME = "groupid";
-  public static final RaftGroupId DEFAULT_ALLUXIO_RAFT_GROUP_ID
+  public static final RaftGroupId DEFAULT_RAFT_GROUP_ID
       = RaftGroupId.valueOf(
-      UUID.fromString("02511d47-d67c-49a3-9011-abb3109a44c1"));
+      UUID.fromString("1-1-1-1-1"));
   protected final PrintStream mPrintStream;
   protected RaftGroup mRaftGroup;
   protected List<RaftPeer> peers;
@@ -60,16 +61,21 @@ public abstract class AbstractRatisCommand implements Command {
       addresses.add(addr);
     }
 
-    RaftGroupId raftGroupId = DEFAULT_ALLUXIO_RAFT_GROUP_ID;
+    RaftGroupId raftGroupId = DEFAULT_RAFT_GROUP_ID;
     if (cl.hasOption(GROUPID_OPTION_NAME)) {
       raftGroupId = RaftGroupId.valueOf(
           UUID.fromString(cl.getOptionValue(GROUPID_OPTION_NAME)));
     } else {
       if (cl.hasOption(SERVICE_ID_OPTION_NAME)) {
-        RaftGroupId.valueOf(
-            UUID.fromString(conf.get(
-                PropertyKey.Template.RATIS_SHELL_GROUP_ID.format(
-                    cl.getOptionValue(SERVICE_ID_OPTION_NAME)))));
+        PropertyKey groupIdKey =
+            PropertyKey.Template.RATIS_SHELL_GROUP_ID.format(
+                cl.getOptionValue(SERVICE_ID_OPTION_NAME));
+        try {
+          raftGroupId =
+              RaftGroupId.valueOf(UUID.fromString(conf.get(groupIdKey)));
+        } catch (IllegalArgumentException e) {
+          // do nothing
+        }
       }
     }
 
@@ -80,6 +86,20 @@ public abstract class AbstractRatisCommand implements Command {
             .build()
         ).collect(Collectors.toList());
     mRaftGroup = RaftGroup.valueOf(raftGroupId, peers);
+    if (raftGroupId == DEFAULT_RAFT_GROUP_ID) {
+      try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
+        List<RaftGroupId> groupIds =
+            client.getGroupManagementApi((peers.get(0).getId())).list()
+                .getGroupIds();
+        if (groupIds.size() == 1) {
+          mRaftGroup = RaftGroup.valueOf(groupIds.get(0), peers);
+        } else {
+          mPrintStream.println(
+              "there are more than one group, you should specific one." + groupIds);
+          return -1;
+        }
+      }
+    }
     return 0;
   }
 

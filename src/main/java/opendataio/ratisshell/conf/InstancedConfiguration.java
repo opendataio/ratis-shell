@@ -298,10 +298,10 @@ public class InstancedConfiguration implements RatisShellConfiguration {
     while (matcher.find()) {
       String match = matcher.group(2).trim();
       if (!seen.add(match)) {
-        throw new RuntimeException("KEY_CIRCULAR_DEPENDENCY");
+        throw new RuntimeException("KEY_CIRCULAR_DEPENDENCY " + match);
       }
       if (!PropertyKey.isValid(match)) {
-        throw new RuntimeException("INVALID_CONFIGURATION_KEY");
+        throw new RuntimeException("INVALID_CONFIGURATION_KEY " + match);
       }
       String value = lookupRecursively(mProperties.get(PropertyKey.fromString(match)), seen);
       seen.remove(match);

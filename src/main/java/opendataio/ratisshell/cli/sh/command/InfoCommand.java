@@ -29,13 +29,14 @@ public class InfoCommand extends AbstractRatisCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     super.run(cl);
+    mPrintStream.println("group id: " + mRaftGroup.getGroupId().getUuid());
     try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
       GroupInfoReply reply =
           client.getGroupManagementApi(peers.get(0).getId()).info(mRaftGroup.getGroupId());
       processReply(reply,
           "failed to get info");
-      mPrintStream.println(reply.getCommitInfos());
       mPrintStream.println("leader id: " + getLeaderId(reply.getRoleInfoProto()));
+      mPrintStream.println(reply.getCommitInfos());
     }
     return 0;
   }

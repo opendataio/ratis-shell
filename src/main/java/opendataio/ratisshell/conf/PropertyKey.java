@@ -345,7 +345,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       }
     }
 
-    throw new IllegalArgumentException("Invalid configuration key");
+    throw new IllegalArgumentException("Invalid configuration key " + input);
   }
 
   /**
