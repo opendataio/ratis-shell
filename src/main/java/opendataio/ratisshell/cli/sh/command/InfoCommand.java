@@ -5,6 +5,7 @@ import opendataio.ratisshell.cli.RaftUtils;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.ratis.client.RaftClient;
+import org.apache.ratis.proto.RaftProtos;
 import org.apache.ratis.protocol.GroupInfoReply;
 
 import java.io.IOException;
@@ -40,7 +41,9 @@ public class InfoCommand extends AbstractRatisCommand {
               .info(mRaftGroup.getGroupId());
       processReply(reply,
           "failed to get info");
-      mPrintStream.println("leader address: " + getLeaderAddress(reply.getRoleInfoProto()));
+      RaftProtos.RaftPeerProto leader =
+          getLeader(reply.getRoleInfoProto());
+      mPrintStream.printf("leader info: %s(%s)%n%n", leader.getId().toStringUtf8(), leader.getAddress());
       mPrintStream.println(reply.getCommitInfos());
     }
     return 0;
