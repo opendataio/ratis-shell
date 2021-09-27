@@ -43,7 +43,8 @@ public class InfoCommand extends AbstractRatisCommand {
           "failed to get info");
       RaftProtos.RaftPeerProto leader =
           getLeader(reply.getRoleInfoProto());
-      mPrintStream.printf("leader info: %s(%s)%n%n", leader.getId().toStringUtf8(), leader.getAddress());
+      mPrintStream.printf("leader info: %s(%s)%n%n",
+          leader.getId().toStringUtf8(), leader.getAddress());
       mPrintStream.println(reply.getCommitInfos());
     }
     return 0;
