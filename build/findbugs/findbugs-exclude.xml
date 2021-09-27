@@ -1,8 +1,5 @@
 <FindBugsFilter>
   <Match>
-    <Package name="~hcfsfuse\.proto.*"/>
-  </Match>
-  <Match>
     <!--
 	DC: Possible double check of field
 	DE: Method might ignore exception
@@ -49,12 +46,5 @@
       -->
     <Bug
       pattern="UUF_UNUSED_FIELD,URF_UNREAD_FIELD,EI_EXPOSE_REP2,SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING,DP_CREATE_CLASSLOADER_INSIDE_DO_PRIVILEGED,IT_NO_SUCH_ELEMENT,OS_OPEN_STREAM"/>
-  </Match>
-
-  <Match>
-    <!-- Avro generates redundant "implements" interface declarations -->
-    <Or>
-      <Package name="~hcfsfuse[.]*[.]proto"/>
-    </Or>
   </Match>
 </FindBugsFilter>
