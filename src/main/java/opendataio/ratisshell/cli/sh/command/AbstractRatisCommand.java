@@ -101,8 +101,8 @@ public abstract class AbstractRatisCommand implements Command {
                 .findFirst();
         if (!raftGroupId.isPresent()) {
           mPrintStream.println(
-              "there are more than one group, you should specific one." +
-                  groupIds);
+              "there are more than one group, you should specific one."
+                  + groupIds);
           return -1;
         } else {
           remoteGroupId = raftGroupId.get();
