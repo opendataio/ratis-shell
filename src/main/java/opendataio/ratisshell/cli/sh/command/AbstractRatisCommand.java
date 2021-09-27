@@ -18,6 +18,7 @@ import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,6 @@ public abstract class AbstractRatisCommand implements Command {
       UUID.fromString("1-1-1-1-1"));
   protected final PrintStream mPrintStream;
   protected RaftGroup mRaftGroup;
-  protected List<RaftPeer> peers;
 
   protected AbstractRatisCommand(Context context) {
     mPrintStream = context.getPrintStream();
@@ -61,9 +61,9 @@ public abstract class AbstractRatisCommand implements Command {
       addresses.add(addr);
     }
 
-    RaftGroupId raftGroupId = DEFAULT_RAFT_GROUP_ID;
+    RaftGroupId raftGroupIdFromConfig = DEFAULT_RAFT_GROUP_ID;
     if (cl.hasOption(GROUPID_OPTION_NAME)) {
-      raftGroupId = RaftGroupId.valueOf(
+      raftGroupIdFromConfig = RaftGroupId.valueOf(
           UUID.fromString(cl.getOptionValue(GROUPID_OPTION_NAME)));
     } else {
       if (cl.hasOption(SERVICE_ID_OPTION_NAME)) {
@@ -71,7 +71,7 @@ public abstract class AbstractRatisCommand implements Command {
             PropertyKey.Template.RATIS_SHELL_GROUP_ID.format(
                 cl.getOptionValue(SERVICE_ID_OPTION_NAME));
         try {
-          raftGroupId =
+          raftGroupIdFromConfig =
               RaftGroupId.valueOf(UUID.fromString(conf.get(groupIdKey)));
         } catch (IllegalArgumentException e) {
           // do nothing
@@ -79,26 +79,38 @@ public abstract class AbstractRatisCommand implements Command {
       }
     }
 
-    peers = addresses.stream()
+    List<RaftPeer> peers = addresses.stream()
         .map(addr -> RaftPeer.newBuilder()
             .setId(RaftUtils.getPeerId(addr))
             .setAddress(addr)
             .build()
         ).collect(Collectors.toList());
-    mRaftGroup = RaftGroup.valueOf(raftGroupId, peers);
-    if (raftGroupId == DEFAULT_RAFT_GROUP_ID) {
-      try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
-        List<RaftGroupId> groupIds =
-            client.getGroupManagementApi((peers.get(0).getId())).list()
-                .getGroupIds();
-        if (groupIds.size() == 1) {
-          mRaftGroup = RaftGroup.valueOf(groupIds.get(0), peers);
-        } else {
+    mRaftGroup = RaftGroup.valueOf(raftGroupIdFromConfig, peers);
+    try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
+      RaftGroupId remoteGroupId;
+      // TODO(maobaolong): failover to other peer if communicate failure
+      List<RaftGroupId> groupIds =
+          client.getGroupManagementApi((peers.get(0).getId())).list()
+              .getGroupIds();
+      if (groupIds.size() == 1) {
+        remoteGroupId = groupIds.get(0);
+      } else {
+        final UUID raftGroupUuid = raftGroupIdFromConfig.getUuid();
+        Optional<RaftGroupId> raftGroupId =
+            groupIds.stream().filter(r -> raftGroupUuid.equals(r.getUuid()))
+                .findFirst();
+        if (!raftGroupId.isPresent()) {
           mPrintStream.println(
-              "there are more than one group, you should specific one." + groupIds);
+              "there are more than one group, you should specific one."
+                  + groupIds);
           return -1;
+        } else {
+          remoteGroupId = raftGroupId.get();
         }
       }
+      // TODO(maobaolong): failover to other peer if communicate failure
+      mRaftGroup = client.getGroupManagementApi((peers.get(0).getId()))
+          .info(remoteGroupId).getGroup();
     }
     return 0;
   }
@@ -119,7 +131,7 @@ public abstract class AbstractRatisCommand implements Command {
    * @param roleInfo the role info
    * @return the leader id
    */
-  protected String getLeaderId(RaftProtos.RoleInfoProto roleInfo) {
+  protected String getLeaderAddress(RaftProtos.RoleInfoProto roleInfo) {
     if (roleInfo == null) {
       return null;
     }
@@ -130,7 +142,7 @@ public abstract class AbstractRatisCommand implements Command {
     if (followerInfo == null) {
       return null;
     }
-    return followerInfo.getLeaderInfo().getId().getId().toStringUtf8();
+    return followerInfo.getLeaderInfo().getId().getAddress();
   }
 
   protected void processReply(RaftClientReply reply, String msg)

@@ -1,8 +1,4 @@
-ratis.shell.alluxio-master.groupid=02511d47-d67c-49a3-9011-abb3109a44c1
 ratis.shell.alluxio-master.peers=localhost:19200,localhost:19201,localhost:19202
-ratis.shell.alluxio-jobmaster.groupid=02511d47-d67c-49a3-9011-abb3109a44c1
-ratis.shell.alluxio-jobmaster.peers=localhost:19200,localhost:19201,localhost:19202
-ratis.shell.ozone-om.groupid=02511d47-d67c-49a3-9011-abb3109a44c1
-ratis.shell.ozone-om.peers=localhost:19200,localhost:19201,localhost:19202
-ratis.shell.ozone-scm.groupid=02511d47-d67c-49a3-9011-abb3109a44c1
-ratis.shell.ozone-scm.peers=localhost:19200,localhost:19201,localhost:19202
+ratis.shell.alluxio-jobmaster.peers=localhost:20003,localhost:20013,localhost:20023
+ratis.shell.ozone-om.peers=localhost:9872,localhost:19872,localhost:29872
+ratis.shell.ozone-scm.peers=localhost:9894,localhost:19894,localhost:29894
