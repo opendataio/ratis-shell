@@ -84,7 +84,7 @@ public class RaftUtils {
     RaftClientConfigKeys.Rpc.setRequestTimeout(properties,
         TimeDuration.valueOf(15, TimeUnit.SECONDS));
     ExponentialBackoffRetry retryPolicy = ExponentialBackoffRetry.newBuilder()
-        .setBaseSleepTime(TimeDuration.valueOf(100, TimeUnit.MILLISECONDS))
+        .setBaseSleepTime(TimeDuration.valueOf(1000, TimeUnit.MILLISECONDS))
         .setMaxAttempts(10)
         .setMaxSleepTime(
             TimeDuration.valueOf(100_000, TimeUnit.MILLISECONDS))

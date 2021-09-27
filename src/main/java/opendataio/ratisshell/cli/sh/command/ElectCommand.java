@@ -38,23 +38,22 @@ public class ElectCommand extends AbstractRatisCommand {
     super.run(cl);
 
     String strAddr = cl.getOptionValue(ADDRESS_OPTION_NAME);
-    InetSocketAddress serverAddress = RaftUtils.stringToAddress(strAddr);
-    // if you cannot find the address in the quorum, throw exception.
-    if (peers.stream().map(RaftPeer::getAddress).noneMatch(addr -> addr.equals(strAddr))) {
-      throw new IOException(String.format("<%s> is not part of the quorum <%s>.",
-          strAddr, peers.stream().map(RaftPeer::getAddress).collect(Collectors.toList())));
-    }
 
-    RaftPeerId newLeaderPeerId =
-        RaftUtils.getPeerId(serverAddress.getHostString(), serverAddress.getPort());
+    RaftPeerId newLeaderId = null;
     // update priorities to enable transfer
     List<RaftPeer> peersWithNewPriorities = new ArrayList<>();
-    for (RaftPeer peer : peers) {
+    for (RaftPeer peer : mRaftGroup.getPeers()) {
       peersWithNewPriorities.add(
           RaftPeer.newBuilder(peer)
-              .setPriority(peer.getId().equals(newLeaderPeerId) ? 2 : 1)
+              .setPriority(peer.getAddress().equals(strAddr) ? 2 : 1)
               .build()
       );
+      if (peer.getAddress().equals(strAddr)) {
+        newLeaderId = peer.getId();
+      }
+    }
+    if (newLeaderId == null) {
+      return -2;
     }
     try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
@@ -67,12 +66,11 @@ public class ElectCommand extends AbstractRatisCommand {
           "failed to set priorities before initiating election");
       // transfer leadership
       mPrintStream.printf(
-          "Transferring leadership to server with address <%s> and with RaftPeerId <%s>%n",
-          serverAddress, newLeaderPeerId);
+          "Transferring leadership to server with address <%s>", strAddr);
       try {
         Thread.sleep(3_000);
         RaftClientReply transferLeadershipReply =
-            client.admin().transferLeadership(newLeaderPeerId, 60_000);
+            client.admin().transferLeadership(newLeaderId, 60_000);
         processReply(transferLeadershipReply, "election failed");
       } catch (Throwable t) {
         mPrintStream.printf("caught an error when executing transfer: %s%n", t.getMessage());

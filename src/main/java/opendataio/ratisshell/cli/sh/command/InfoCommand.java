@@ -32,10 +32,15 @@ public class InfoCommand extends AbstractRatisCommand {
     mPrintStream.println("group id: " + mRaftGroup.getGroupId().getUuid());
     try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
       GroupInfoReply reply =
-          client.getGroupManagementApi(peers.get(0).getId()).info(mRaftGroup.getGroupId());
+          client.getGroupManagementApi(
+              mRaftGroup.getPeers().stream()
+                  .findFirst()
+                  .get()
+                  .getId())
+              .info(mRaftGroup.getGroupId());
       processReply(reply,
           "failed to get info");
-      mPrintStream.println("leader id: " + getLeaderId(reply.getRoleInfoProto()));
+      mPrintStream.println("leader address: " + getLeaderAddress(reply.getRoleInfoProto()));
       mPrintStream.println(reply.getCommitInfos());
     }
     return 0;
