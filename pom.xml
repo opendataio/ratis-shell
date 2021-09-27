@@ -324,7 +324,7 @@
           </executions>
           <configuration>
             <findbugsXmlOutput>true</findbugsXmlOutput>
-            <failOnError>true</failOnError>
+            <failOnError>false</failOnError>
             <xmlOutput>true</xmlOutput>
             <excludeFilterFile>${rootPOM}/build/findbugs/findbugs-exclude.xml</excludeFilterFile>
             <threshold>Low</threshold>
