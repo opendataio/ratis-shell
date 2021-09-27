@@ -7,7 +7,10 @@ import opendataio.ratisshell.conf.PropertyKey;
 import opendataio.ratisshell.conf.RatisShellConfiguration;
 import org.apache.commons.cli.CommandLine;
 import org.apache.ratis.client.RaftClient;
-import org.apache.ratis.proto.RaftProtos;
+import org.apache.ratis.proto.RaftProtos.RaftPeerProto;
+import org.apache.ratis.proto.RaftProtos.RoleInfoProto;
+import org.apache.ratis.proto.RaftProtos.RaftPeerRole;
+import org.apache.ratis.proto.RaftProtos.FollowerInfoProto;
 import org.apache.ratis.protocol.RaftClientReply;
 import org.apache.ratis.protocol.RaftGroup;
 import org.apache.ratis.protocol.RaftGroupId;
@@ -131,18 +134,18 @@ public abstract class AbstractRatisCommand implements Command {
    * @param roleInfo the role info
    * @return the leader id
    */
-  protected String getLeaderAddress(RaftProtos.RoleInfoProto roleInfo) {
+  protected RaftPeerProto getLeader(RoleInfoProto roleInfo) {
     if (roleInfo == null) {
       return null;
     }
-    if (roleInfo.getRole() == RaftProtos.RaftPeerRole.LEADER) {
-      return roleInfo.getSelf().getAddress();
+    if (roleInfo.getRole() == RaftPeerRole.LEADER) {
+      return roleInfo.getSelf();
     }
-    RaftProtos.FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
+    FollowerInfoProto followerInfo = roleInfo.getFollowerInfo();
     if (followerInfo == null) {
       return null;
     }
-    return followerInfo.getLeaderInfo().getId().getAddress();
+    return followerInfo.getLeaderInfo().getId();
   }
 
   protected void processReply(RaftClientReply reply, String msg)

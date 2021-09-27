@@ -58,14 +58,14 @@ public class ElectCommand extends AbstractRatisCommand {
       String stringPeers = "[" + peersWithNewPriorities.stream().map(RaftPeer::toString)
           .collect(Collectors.joining(", ")) + "]";
       mPrintStream.printf(
-          "Applying new peer state before transferring leadership: %s%n", stringPeers);
+          "Applying new peer state before transferring leadership: %n%s%n", stringPeers);
       RaftClientReply setConfigurationReply =
           client.admin().setConfiguration(peersWithNewPriorities);
       processReply(setConfigurationReply,
           "failed to set priorities before initiating election");
       // transfer leadership
       mPrintStream.printf(
-          "Transferring leadership to server with address <%s>", strAddr);
+          "Transferring leadership to server with address <%s> %n", strAddr);
       try {
         Thread.sleep(3_000);
         RaftClientReply transferLeadershipReply =
