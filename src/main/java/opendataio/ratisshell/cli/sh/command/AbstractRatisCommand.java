@@ -6,6 +6,7 @@ import opendataio.ratisshell.conf.InstancedConfiguration;
 import opendataio.ratisshell.conf.PropertyKey;
 import opendataio.ratisshell.conf.RatisShellConfiguration;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.ratis.client.RaftClient;
 import org.apache.ratis.proto.RaftProtos.RaftPeerProto;
 import org.apache.ratis.proto.RaftProtos.RoleInfoProto;
@@ -126,6 +127,14 @@ public abstract class AbstractRatisCommand implements Command {
           "should provide at least one of [%s] and [%s]",
           SERVICE_ID_OPTION_NAME, PEER_OPTION_NAME));
     }
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+            .addOption(PEER_OPTION_NAME, true, "Peer addresses seperated by comma")
+            .addOption(GROUPID_OPTION_NAME, true, "Raft group id")
+            .addOption(SERVICE_ID_OPTION_NAME, true, "Service id");
   }
 
   /**
