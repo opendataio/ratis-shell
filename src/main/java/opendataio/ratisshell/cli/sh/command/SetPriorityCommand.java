@@ -10,11 +10,13 @@ import org.apache.ratis.protocol.RaftPeer;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
-   * Command for setting priority of the specific ratis server.
-   */
+ *  Command for setting priority of the specific ratis server.
+ */
 public class SetPriorityCommand extends AbstractRatisCommand {
   public static final String PEER_WITH_NEW_PRIORITY = "addressPriority";
 
@@ -33,20 +35,25 @@ public class SetPriorityCommand extends AbstractRatisCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     super.run(cl);
-    String[] peersNewPriority = cl.getOptionValue(PEER_WITH_NEW_PRIORITY).split(",");
-    if (peersNewPriority.length != 2) {
+    String[] peersNewPriority = cl.getOptionValues(PEER_WITH_NEW_PRIORITY);
+    if (peersNewPriority.length < 1) {
       return -2;
     }
+    Map<String, Integer> addressPriorityMap = new HashMap<>();
+    for (String peer : peersNewPriority) {
+      String[] str = peer.split(",");
+      addressPriorityMap.put(str[0], Integer.parseInt(str[1]));
+    }
+
     try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
       List<RaftPeer> peers = new ArrayList<>();
       for (RaftPeer peer : mRaftGroup.getPeers()) {
-        if (!peer.getAddress().equals(peersNewPriority[0])) {
+        if (!addressPriorityMap.containsKey(peer.getAddress())) {
           peers.add(RaftPeer.newBuilder(peer).build());
         } else {
-          int priority = Integer.parseInt(peersNewPriority[1]);
           peers.add(
                   RaftPeer.newBuilder(peer)
-                          .setPriority(priority)
+                          .setPriority(addressPriorityMap.get(peer.getAddress()))
                           .build()
           );
         }
@@ -64,7 +71,8 @@ public class SetPriorityCommand extends AbstractRatisCommand {
                     + " [-%s RAFT_GROUP_ID]"
                     + " [-%s SERVICE_ID]"
                     + " [-%s PEER_HOST:PEER_PORT,PRIORITY]",
-            getCommandName(), PEER_OPTION_NAME, GROUPID_OPTION_NAME, SERVICE_ID_OPTION_NAME);
+            getCommandName(), PEER_OPTION_NAME, GROUPID_OPTION_NAME,
+            SERVICE_ID_OPTION_NAME, PEER_WITH_NEW_PRIORITY);
   }
 
   @Override
