@@ -82,11 +82,8 @@ public class SetPriorityCommand extends AbstractRatisCommand {
 
   @Override
   public Options getOptions() {
-    return new Options()
-              .addOption(PEER_OPTION_NAME, true, "Peer addresses seperated by comma")
-              .addOption(GROUPID_OPTION_NAME, true, "Raft group id")
-              .addOption(SERVICE_ID_OPTION_NAME, true, "Service id")
-              .addOption(PEER_WITH_NEW_PRIORITY, true, "Peers information with priority");
+    return super.getOptions().addOption(PEER_WITH_NEW_PRIORITY, true,
+            "Peers information with priority");
   }
 
   /**
