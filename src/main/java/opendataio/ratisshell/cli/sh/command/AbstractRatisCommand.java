@@ -1,5 +1,6 @@
 package opendataio.ratisshell.cli.sh.command;
 
+import opendataio.ratisshell.RetryUtil;
 import opendataio.ratisshell.cli.Command;
 import opendataio.ratisshell.cli.RaftUtils;
 import opendataio.ratisshell.conf.InstancedConfiguration;
@@ -90,12 +91,20 @@ public abstract class AbstractRatisCommand implements Command {
             .build()
         ).collect(Collectors.toList());
     mRaftGroup = RaftGroup.valueOf(raftGroupIdFromConfig, peers);
-    try (RaftClient client = RaftUtils.createClient(mRaftGroup)) {
+    try (final RaftClient client = RaftUtils.createClient(mRaftGroup)) {
       RaftGroupId remoteGroupId;
-      // TODO(maobaolong): failover to other peer if communicate failure
-      List<RaftGroupId> groupIds =
-          client.getGroupManagementApi((peers.get(0).getId())).list()
-              .getGroupIds();
+      List<RaftGroupId> groupIds;
+      groupIds = RetryUtil.run(peers,
+          p -> {
+            try {
+              return client.getGroupManagementApi((p.getId())).list().getGroupIds();
+            } catch (IOException e) {
+              e.printStackTrace();
+              return null;
+            }
+          }
+      );
+
       if (groupIds.size() == 1) {
         remoteGroupId = groupIds.get(0);
       } else {
@@ -113,8 +122,17 @@ public abstract class AbstractRatisCommand implements Command {
         }
       }
       // TODO(maobaolong): failover to other peer if communicate failure
-      mRaftGroup = client.getGroupManagementApi((peers.get(0).getId()))
-          .info(remoteGroupId).getGroup();
+      mRaftGroup = RetryUtil.run(peers,
+          p -> {
+            try {
+              return client.getGroupManagementApi((p.getId()))
+                  .info(remoteGroupId).getGroup();
+            } catch (IOException e) {
+              e.printStackTrace();
+              return null;
+            }
+          }
+      );
     }
     return 0;
   }
